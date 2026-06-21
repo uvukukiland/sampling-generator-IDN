@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Smoke test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies (requirements.txt)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Syntax check
+        run: python -m py_compile app.py sampling_engine.py
+
+      - name: Run smoke test
+        run: python tests/smoke_test.py
+
+  docker:
+    name: Docker build (reproducible)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image (uses requirements-lock.txt)
+        run: docker build -t sampling-idn .
+
+      - name: Smoke test inside image
+        run: docker run --rm --entrypoint python sampling-idn tests/smoke_test.py
