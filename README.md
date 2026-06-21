@@ -6,6 +6,10 @@
 </p>
 
 <p align="center">
+  <a href="https://sampling-idn.streamlit.app/"><img src="https://static.streamlit.io/badges/streamlit_badge_black_white.svg" alt="Open in Streamlit"></a>
+</p>
+
+<p align="center">
   <a href="https://github.com/uvukukiland/sampling-generator-IDN/actions/workflows/ci.yml"><img src="https://github.com/uvukukiland/sampling-generator-IDN/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/Streamlit-app-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit">
@@ -18,6 +22,9 @@
 Aplikasi ini menggantikan skrip sampling lama yang **"tidak semua wilayah bisa tersampling"**.
 Di sini setiap wilayah dijamin tercakup lewat **alokasi proporsional dengan jaminan minimum**,
 mengikuti kerangka sampling **SILOGNAS / SURNAS**.
+
+> 🔗 **Demo online:** **<https://sampling-idn.streamlit.app/>**
+> (akses dibatasi; di cloud, unggah file MFD dulu lewat panel kiri.)
 
 ## Daftar Isi
 - [Fitur](#fitur)
