@@ -1,0 +1,16 @@
+# Konfigurasi tampilan & perilaku aplikasi Streamlit.
+# Berlaku otomatis baik di lokal maupun di Streamlit Community Cloud.
+
+[theme]
+base = "light"
+primaryColor = "#2563EB"          # aksen biru (tombol, slider, highlight)
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F1F5F9"
+textColor = "#0F172A"
+font = "sans serif"
+
+[server]
+maxUploadSize = 50                 # batas unggah file (MB); MFD ~3MB, beri kelonggaran
+
+[browser]
+gatherUsageStats = false           # nonaktifkan telemetri (privasi untuk alat internal)
