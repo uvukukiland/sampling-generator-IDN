@@ -1,0 +1,12 @@
+# Normalisasi line ending lintas-OS
+* text=auto
+
+# Skrip shell macOS/Linux WAJIB LF (kalau CRLF, gagal jalan di Mac)
+*.command text eol=lf
+*.sh      text eol=lf
+
+# Batch Windows pakai CRLF
+*.bat     text eol=crlf
+
+# Sumber Python: LF
+*.py      text eol=lf

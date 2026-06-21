@@ -1,0 +1,23 @@
+# Data mentah (JANGAN diunggah — internal / mengandung data pribadi)
+*.xlsx
+*.xls
+*.zip
+
+# File hasil & sementara yang dihasilkan aplikasi
+hasil_*.xlsx
+kerangka_*.xlsx
+template_*.xlsx
+_*.csv
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
