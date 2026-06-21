@@ -67,6 +67,15 @@ Lalu buka alamat yang muncul (biasanya `http://localhost:8501`).
 - **Jaringan lokal:** jalankan di satu komputer, buka *Network URL* (mis. `http://192.168.x.x:8501`) dari perangkat lain di Wi-Fi yang sama.
 - **Streamlit Community Cloud (gratis):** hubungkan repo ini ke [share.streamlit.io](https://share.streamlit.io) → akses dari browser mana pun. Untuk data internal, andalkan fitur **unggah file** (jangan menaruh MFD/PII di repo).
 
+### Docker (paling awet / reproducible)
+Untuk arsip jangka panjang (Python + semua library dibekukan versinya):
+```bash
+docker build -t sampling-idn .
+docker run -p 8501:8501 sampling-idn
+# buka http://localhost:8501
+```
+Image memakai `requirements-lock.txt` (versi terkunci persis) di atas Python 3.12, sehingga dapat dibangun ulang dengan hasil identik bertahun-tahun ke depan.
+
 ## Alur Pemakaian
 1. **Unggah MFD** (`.xlsx`) — tiap sheet = satu provinsi; kolom wajib `NMKAB`, `NMKEC`, `NMDESA`, `UR` (1=Kota, 2=Desa). Belum punya? Unduh **Template MFD** di panel kiri.
 2. **Pilih preset** survei (Daerah 800 / Nasional 1200–1500 / Quick Count 2000+) atau Kustom.
@@ -100,6 +109,8 @@ Sampling **multistage proporsional terstratifikasi**:
 | `requirements.txt` | Dependensi Python |
 | `jalankan.bat` | Launcher Windows (klik dua kali) |
 | `jalankan_mac.command` | Launcher macOS/Linux (klik dua kali) |
+| `requirements-lock.txt` | Versi terkunci persis (dipakai Docker) |
+| `Dockerfile` | Image reproducible (Python 3.12 + library terkunci) |
 
 > File MFD (`mfd 2024.xlsx`) **tidak disertakan** di repo — unggah lewat aplikasi saat dipakai.
 
@@ -123,6 +134,16 @@ print(res.ringkasan)
 ## Catatan Data & Privasi
 - Jangan menaruh file MFD/responden ber-**data pribadi** ke repo (apalagi publik). `.gitignore` sudah memblokir `*.xlsx`, `*.xls`, `*.zip`.
 - Untuk berbagi aplikasi, andalkan fitur **unggah file** di antarmuka, bukan menyimpan data di repo.
+
+## Keawetan Jangka Panjang
+Agar app tetap jalan bertahun-tahun tanpa kejutan:
+- **Versi dikunci** — `requirements.txt` memberi batas atas (`<major berikutnya`) supaya update besar yang merusak tidak ikut terpasang.
+- **API terbaru** — tidak memakai API Streamlit yang sudah usang (memakai `width="stretch"`, bukan `use_container_width`).
+- **Reproducible penuh** — `Dockerfile` + `requirements-lock.txt` membekukan Python 3.12 dan versi library persis; PyPI menyimpan versi lama selamanya sehingga dapat dibangun ulang kapan pun.
+
+**Tested with:** Python 3.12–3.14 · Streamlit 1.58 · pandas 2.2 / 3.0 · numpy 2.x · openpyxl 3.1 · XlsxWriter 3.2.
+
+> Catatan jujur: "10 tahun tanpa disentuh" paling terjamin lewat **Docker** (Python ikut dibekukan). Tanpa Docker, app tetap bergantung pada versi Python di komputer; pin `requirements.txt` sudah meminimalkan risiko, tapi pembaruan Python sistem suatu saat bisa menuntut penyesuaian kecil.
 
 ## Lisensi
 Dirilis di bawah **[MIT License](LICENSE)** © 2026 uvukukiland.

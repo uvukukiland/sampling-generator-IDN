@@ -1,0 +1,12 @@
+.git
+.venv
+venv
+__pycache__
+*.pyc
+*.xlsx
+*.xls
+*.zip
+hasil_*.xlsx
+kerangka_*.xlsx
+template_*.xlsx
+.DS_Store

@@ -94,7 +94,7 @@ with st.sidebar:
         data=_template_bytes(),
         file_name="template_mfd.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True,
+        width="stretch",
     )
 
     st.divider()
@@ -147,7 +147,7 @@ with st.sidebar:
         data=_sheets_to_excel(E.build_reference_template(ref_df)),
         file_name="template_referensi_dpt_penduduk.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True,
+        width="stretch",
         help="Berisi 38 provinsi terisi nilai saat ini — tinggal edit angkanya.",
     )
 
@@ -262,7 +262,7 @@ if scope in ("PROVINSI", "KABUPATEN") and not scope_filter:
     st.warning("Pilih minimal satu wilayah pada cakupan terpilih.")
     st.stop()
 
-if st.button("🚀 Lakukan Sampling", type="primary", use_container_width=True):
+if st.button("🚀 Lakukan Sampling", type="primary", width="stretch"):
     cfg = E.SamplingConfig(
         scope=scope,
         scope_filter=scope_filter,
@@ -308,20 +308,20 @@ if "res" in st.session_state:
     tab1, tab2, tab3, tab5, tab4 = st.tabs(
         ["📋 Ringkasan", "📍 Sampel", "📊 Alokasi", "🗂️ Kerangka", "⚠️ Catatan"])
     with tab1:
-        st.dataframe(res.ringkasan, use_container_width=True, hide_index=True)
+        st.dataframe(res.ringkasan, width="stretch", hide_index=True)
         if len(res.sample) and "URLABEL" in res.sample:
             st.bar_chart(res.sample["NMPROP"].value_counts())
     with tab2:
         show_cols = [c for c in ["ID", "NMPROP", "NMKAB", "NMKEC", "NMDESA", "URLABEL", "RESPONDEN"]
                      if c in res.sample.columns]
         st.dataframe(res.sample[show_cols] if show_cols else res.sample,
-                     use_container_width=True, height=420)
+                     width="stretch", height=420)
     with tab3:
-        st.dataframe(res.alokasi, use_container_width=True, hide_index=True, height=420)
+        st.dataframe(res.alokasi, width="stretch", hide_index=True, height=420)
     with tab5:
         st.caption("Rekap alokasi format SILOGNAS SURNAS (per wilayah, DPT/Penduduk, "
                    "Kota/Desa, titik & responden, TPD).")
-        st.dataframe(st.session_state["recap"].astype(str), use_container_width=True,
+        st.dataframe(st.session_state["recap"].astype(str), width="stretch",
                      hide_index=True, height=420)  # cast utk tampilan; Excel tetap numerik
     with tab4:
         if res.warnings:
@@ -339,7 +339,7 @@ if "res" in st.session_state:
             "⬇️ Hasil Sampel (Excel)",
             data=st.session_state["res_xlsx"],
             file_name=f"hasil_sampel_{fn}.xlsx",
-            mime=XLSX, type="primary", use_container_width=True,
+            mime=XLSX, type="primary", width="stretch",
             help="Berisi sheet: Ringkasan, Sampel (daftar titik terpilih), Alokasi.",
         )
     with dl2:
@@ -347,7 +347,7 @@ if "res" in st.session_state:
             "⬇️ Format Kerangka (Excel)",
             data=st.session_state["kerangka_xlsx"],
             file_name=f"kerangka_{fn}.xlsx",
-            mime=XLSX, use_container_width=True,
+            mime=XLSX, width="stretch",
             help="Rekap alokasi per wilayah ala SILOGNAS SURNAS + Ringkasan.",
         )
 

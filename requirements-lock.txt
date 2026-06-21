@@ -1,0 +1,8 @@
+# Versi terkunci PERSIS untuk reproducibility jangka panjang (dipakai oleh Dockerfile).
+# Dipasang di atas Python 3.12 (lihat Dockerfile) -> kombinasi stabil & teruji.
+# PyPI menyimpan versi lama selamanya, sehingga build ini dapat diulang bertahun-tahun.
+streamlit==1.58.0
+pandas==2.2.3
+numpy==2.1.3
+openpyxl==3.1.5
+xlsxwriter==3.2.9
