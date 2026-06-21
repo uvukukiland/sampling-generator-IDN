@@ -1,111 +1,109 @@
-# 🎯 Asisten Random Sampling Wilayah
+<h1 align="center">🎯 Asisten Random Sampling Wilayah</h1>
 
-Aplikasi untuk **otomatis mensampling wilayah** dari database **MFD (Master File Desa)** BPS,
-sesuai kebutuhan survei: daerah (kab/kota), provinsi, nasional, hingga **quick count / exit poll**.
+<p align="center">
+  Sampling otomatis wilayah dari database <b>MFD (Master File Desa)</b> BPS —
+  untuk survei daerah, nasional, hingga quick count / exit poll.
+</p>
 
-Menggantikan skrip Colab lama yang **"tidak semua wilayah bisa tersampling"** — di sini setiap
-wilayah dijamin tercakup lewat alokasi proporsional dengan **jaminan minimum**.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/Streamlit-app-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit">
+  <img src="https://img.shields.io/badge/License-MIT-green" alt="License: MIT">
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey" alt="Platform">
+</p>
 
 ---
 
-## Cara menjalankan
+Aplikasi ini menggantikan skrip sampling lama yang **"tidak semua wilayah bisa tersampling"**.
+Di sini setiap wilayah dijamin tercakup lewat **alokasi proporsional dengan jaminan minimum**,
+mengikuti kerangka sampling **SILOGNAS / SURNAS**.
 
-Aplikasi ini **lintas-platform** (Windows, macOS, Linux) karena berbasis Python + Streamlit.
+## Daftar Isi
+- [Fitur](#fitur)
+- [Cara Menjalankan](#cara-menjalankan)
+- [Alur Pemakaian](#alur-pemakaian)
+- [Metodologi](#metodologi)
+- [Dua Jenis Export](#dua-jenis-export)
+- [Struktur Berkas](#struktur-berkas)
+- [Pakai Engine Tanpa UI](#pakai-engine-tanpa-ui-opsional)
+- [Catatan Data & Privasi](#catatan-data--privasi)
+- [Lisensi](#lisensi)
+
+---
+
+## Fitur
+- ✅ **Jaminan cakupan** — setiap wilayah pasti kebagian sampel (metode *largest-remainder* + minimum per wilayah).
+- 🗺️ **Tiga cakupan**: Nasional (38 provinsi) · Provinsi · Kabupaten/Kota.
+- 📍 **Dua unit sampling**: Desa/Kelurahan (titik/TPD) atau Kabupaten/Kota.
+- ⚖️ **Basis alokasi gabungan**: Jumlah Penduduk · DPT · Jumlah Desa (MFD), dengan bobot yang bisa diatur.
+- 🏙️ **Stratifikasi Kota/Desa** (kolom `UR`) + opsi **PPS** (peluang ~ ukuran wilayah).
+- 🔁 **Reproducible** lewat *random seed*.
+- 📄 **Template MFD & Referensi** siap unduh + **dua jenis export** (Hasil & format Kerangka).
+- 🧹 **Loader tahan-banting** terhadap MFD dengan kolom tidak konsisten antar-sheet.
+- 💻 **Lintas-platform**: Windows, macOS, Linux.
+
+## Cara Menjalankan
+
+Aplikasi berbasis **Python + Streamlit** sehingga jalan di Windows, macOS, dan Linux.
 
 ### Windows
-Klik dua kali **`jalankan.bat`**. Aplikasi terbuka otomatis di browser.
+Klik dua kali **`jalankan.bat`** → aplikasi terbuka otomatis di browser.
 
 ### macOS / Linux
 Klik dua kali **`jalankan_mac.command`**.
-- Pertama kali, macOS mungkin menahan file dari sumber tak dikenal → **klik kanan → Open** (sekali saja).
-- Jika belum bisa diklik, jalankan sekali di Terminal: `chmod +x jalankan_mac.command`.
-- Butuh **Python 3** (cek: `python3 --version`; bila belum ada, pasang dari python.org atau `brew install python`).
-- Script otomatis membuat virtual environment `.venv` (sekali saja) lalu menjalankan aplikasi.
+- Pertama kali: **klik kanan → Open** (sekali, agar lolos Gatekeeper macOS).
+- Bila belum bisa diklik: jalankan sekali `chmod +x jalankan_mac.command`.
+- Butuh **Python 3** (`python3 --version`; pasang dari [python.org](https://www.python.org/downloads/) atau `brew install python`).
+- Script otomatis membuat virtual environment `.venv` (sekali) lalu menjalankan aplikasi.
 
-### Cara manual (semua OS)
+### Manual (semua OS)
 ```bash
-pip install -r requirements.txt        # macOS: pakai pip3 / dalam venv
-streamlit run app.py                    # atau: python -m streamlit run app.py
+pip install -r requirements.txt      # macOS: pip3 / dalam venv
+streamlit run app.py                  # atau: python -m streamlit run app.py
 ```
 Lalu buka alamat yang muncul (biasanya `http://localhost:8501`).
 
-### Alternatif tanpa install
-- **Akses dari perangkat lain di jaringan yang sama:** jalankan di satu komputer, lalu buka *Network URL*
-  yang ditampilkan Streamlit (mis. `http://192.168.x.x:8501`) dari MacBook/HP di Wi-Fi yang sama.
-- **Streamlit Community Cloud (gratis):** unggah folder ini ke repo GitHub, hubungkan ke
-  [share.streamlit.io](https://share.streamlit.io) → aplikasi dapat diakses dari browser mana pun
-  tanpa install. (Catatan: bila MFD/referensi bersifat internal, andalkan fitur **unggah file**
-  alih-alih menyertakan data ke repo publik.)
+### Tanpa install
+- **Jaringan lokal:** jalankan di satu komputer, buka *Network URL* (mis. `http://192.168.x.x:8501`) dari perangkat lain di Wi-Fi yang sama.
+- **Streamlit Community Cloud (gratis):** hubungkan repo ini ke [share.streamlit.io](https://share.streamlit.io) → akses dari browser mana pun. Untuk data internal, andalkan fitur **unggah file** (jangan menaruh MFD/PII di repo).
 
----
-
-## Alur pemakaian
-
-1. **Unggah MFD** (`.xlsx`) — atau pakai file bawaan `mfd 2024.xlsx`.
-   Tiap sheet = satu provinsi; kolom wajib: `NMKAB`, `NMKEC`, `NMDESA`, `UR` (1=Kota, 2=Desa).
-   Belum punya MFD? Klik **"Unduh Template MFD (kosong)"** di panel kiri, isi sesuai
-   lembar *Petunjuk*, lalu unggah kembali. (Template memakai format **satu sheet gabungan**
-   dengan kolom `NMPROP`; loader juga tetap menerima format per-provinsi/sheet.)
+## Alur Pemakaian
+1. **Unggah MFD** (`.xlsx`) — tiap sheet = satu provinsi; kolom wajib `NMKAB`, `NMKEC`, `NMDESA`, `UR` (1=Kota, 2=Desa). Belum punya? Unduh **Template MFD** di panel kiri.
 2. **Pilih preset** survei (Daerah 800 / Nasional 1200–1500 / Quick Count 2000+) atau Kustom.
-3. **Atur cakupan & unit**:
-   - Cakupan: Nasional · Provinsi · Kabupaten/Kota
-   - Unit titik akhir: **Desa/Kelurahan** atau **Kabupaten/Kota**
-4. **Atur basis alokasi** (bisa dikombinasikan dengan bobot): Jumlah Penduduk · DPT · Jumlah Desa (MFD).
-   Data Penduduk/DPT memakai referensi bawaan; untuk MFD baru, unduh **"Template Referensi"**
-   (sudah terisi 38 provinsi), edit angkanya, lalu **unggah** di panel kiri. Nama kolom fleksibel
-   (`NMPROP`/`Provinsi`, `DPT`/`Jumlah DPT`, `PENDUDUK`/`Jumlah Penduduk`). Provinsi yang tak cocok
-   akan diberitahukan & alokasinya otomatis memakai basis lain.
-5. **Jalankan** → lihat ringkasan, daftar sampel, tabel alokasi & kerangka, lalu **unduh Excel**.
-
-### Dua jenis export
-- **Hasil Sampel** (`hasil_sampel_*.xlsx`) — sheet *Ringkasan*, *Sampel* (daftar titik/desa
-  terpilih siap lapangan), *Alokasi*.
-- **Format Kerangka** (`kerangka_*.xlsx`) — rekap alokasi per wilayah menyerupai
-  **SILOGNAS SURNAS**: DPT, Penduduk, jumlah Kota/Desa (MFD), titik & responden per strata,
-  dan TPD, lengkap dengan baris TOTAL.
-
----
+3. **Atur cakupan & unit** (Nasional/Provinsi/Kabupaten · Desa/Kabupaten).
+4. **Atur basis alokasi** (Penduduk/DPT/MFD, bobot bisa dikombinasi). Untuk MFD baru, unduh **Template Referensi** (sudah terisi), edit angka DPT/Penduduk, lalu unggah.
+5. **Jalankan** → lihat Ringkasan, Sampel, Alokasi, Kerangka → **unduh Excel**.
 
 ## Metodologi
+Sampling **multistage proporsional terstratifikasi**:
 
-Sampling **multistage proporsional terstratifikasi**, mengikuti kerangka SILOGNAS/SURNAS:
+1. **Jumlah titik (TPD)** = ⌈target responden ÷ responden per titik⌉ — mis. 1200 ÷ 10 = 120 titik.
+2. **Alokasi antar wilayah** (provinsi → kab/kota → kecamatan) **proporsional** terhadap ukuran (Penduduk/DPT/jumlah desa), memakai **largest-remainder (Hamilton)** agar totalnya **persis** & tak ada wilayah ter-skip.
+3. **Jaminan minimum** (`min_per_unit`, default 1) → tiap wilayah primer dapat ≥1 titik. **Inilah perbaikan utama** atas skrip lama.
+4. **Stratifikasi Kota/Desa** (`UR`): jatah titik dipecah Perkotaan vs Perdesaan proporsional jumlah kota/desa.
+5. **Seleksi acak** desa/kelurahan tiap strata (reproducible via seed; mode kabupaten mendukung PPS).
 
-1. **Jumlah titik (TPD)** = ⌈target responden ÷ responden per titik⌉.
-   Contoh: 1200 responden ÷ 10 = 120 titik.
-2. **Alokasi antar wilayah primer** (provinsi → kab/kota → kecamatan, sesuai cakupan) secara
-   **proporsional** terhadap ukuran (Penduduk/DPT/jumlah desa), memakai metode
-   **largest-remainder (Hamilton)** sehingga totalnya **persis** dan tidak ada wilayah ter-skip.
-3. **Jaminan minimum** (`min_per_unit`, default 1) → tiap wilayah primer pasti kebagian ≥1 titik.
-   **Inilah perbaikan utama** atas skrip lama.
-4. **Stratifikasi Kota/Desa** (kolom `UR`): jatah titik tiap wilayah dipecah Perkotaan vs
-   Perdesaan proporsional jumlah kota/desa.
-5. **Seleksi acak** desa/kelurahan dalam tiap strata (reproducible via *random seed*).
-   Mode kabupaten mendukung **PPS** (peluang sebanding jumlah desa).
+> **Mengapa "semua wilayah tersampling"?** Skrip lama hanya memproses satu sheet & satu kategori lalu mengisi sisa dengan interval, sehingga banyak wilayah tak pernah masuk. Engine ini memproses **seluruh 38 provinsi sekaligus**, mengalokasikan dengan **floor minimum + largest remainder**, dan **melaporkan** bila ada wilayah yang tak tercukupi (banner cakupan & tab *Catatan*).
 
-### Mengapa "semua wilayah tersampling"
-Skrip lama hanya memproses satu sheet & satu kategori, lalu mengisi sisa dengan interval —
-banyak wilayah tidak pernah masuk. Engine ini memproses **seluruh 38 provinsi sekaligus**,
-mengalokasikan dengan **floor minimum + largest remainder**, dan **melaporkan** bila ada
-wilayah yang tak tercukupi (lihat tab *Catatan* & banner cakupan).
+## Dua Jenis Export
+| Export | Isi |
+|---|---|
+| **Hasil Sampel** (`hasil_sampel_*.xlsx`) | Sheet *Ringkasan*, *Sampel* (daftar titik/desa terpilih siap lapangan), *Alokasi*. |
+| **Format Kerangka** (`kerangka_*.xlsx`) | Rekap per wilayah ala **SILOGNAS SURNAS**: DPT, %, Penduduk, %, jumlah Kota/Desa (MFD), titik & responden per strata, TPD, + baris **TOTAL**. |
 
----
-
-## Struktur berkas
-
+## Struktur Berkas
 | Berkas | Fungsi |
 |---|---|
 | `app.py` | Antarmuka Streamlit |
 | `sampling_engine.py` | Mesin sampling (loader, alokasi, seleksi) — bisa dipakai terpisah |
-| `data/referensi_provinsi.csv` | Referensi DPT & Penduduk per provinsi (dari Kerangka SILOGNAS) — bisa ditimpa lewat unggahan |
-| `mfd 2024.xlsx` | Database MFD bawaan |
+| `data/referensi_provinsi.csv` | Referensi DPT & Penduduk per provinsi — bisa ditimpa lewat unggahan |
 | `requirements.txt` | Dependensi Python |
 | `jalankan.bat` | Launcher Windows (klik dua kali) |
 | `jalankan_mac.command` | Launcher macOS/Linux (klik dua kali) |
 
----
+> File MFD (`mfd 2024.xlsx`) **tidak disertakan** di repo — unggah lewat aplikasi saat dipakai.
 
-## Pakai engine tanpa UI (opsional)
-
+## Pakai Engine Tanpa UI (opsional)
 ```python
 import pandas as pd, sampling_engine as E
 
@@ -121,3 +119,10 @@ res = E.run_sampling(df, cfg)
 res.sample.to_excel("hasil_sampling.xlsx", index=False)
 print(res.ringkasan)
 ```
+
+## Catatan Data & Privasi
+- Jangan menaruh file MFD/responden ber-**data pribadi** ke repo (apalagi publik). `.gitignore` sudah memblokir `*.xlsx`, `*.xls`, `*.zip`.
+- Untuk berbagi aplikasi, andalkan fitur **unggah file** di antarmuka, bukan menyimpan data di repo.
+
+## Lisensi
+Dirilis di bawah **[MIT License](LICENSE)** © 2026 uvukukiland.
