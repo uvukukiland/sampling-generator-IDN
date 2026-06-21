@@ -6,6 +6,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/uvukukiland/sampling-generator-IDN/actions/workflows/ci.yml"><img src="https://github.com/uvukukiland/sampling-generator-IDN/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/Streamlit-app-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License: MIT">
