@@ -72,10 +72,22 @@ def _template_bytes() -> bytes:
 # ---------------------------------------------------------------------------
 # Header
 # ---------------------------------------------------------------------------
-st.title("🎯 Asisten Random Sampling Wilayah")
-st.caption(
-    "Sampling multistage berbasis MFD (Master File Desa) BPS — proporsional, "
-    "terstratifikasi Kota/Desa, dengan **jaminan semua wilayah tersampling**."
+st.markdown(
+    """
+    <div style="border-left:6px solid #2563EB; padding:0.35rem 0 0.35rem 0.9rem; margin-bottom:0.4rem;">
+      <div style="font-size:1.7rem; font-weight:800; color:#0F172A; line-height:1.2;">
+        🎯 Asisten Random Sampling Wilayah
+      </div>
+      <div style="color:#475569; font-size:0.95rem; margin-top:0.2rem;">
+        Sampling multistage berbasis <b>MFD (Master File Desa)</b> BPS — proporsional,
+        terstratifikasi Kota/Desa, dengan <b>jaminan semua wilayah tersampling</b>.
+      </div>
+      <div style="color:#94A3B8; font-size:0.8rem; margin-top:0.25rem; letter-spacing:0.03em;">
+        POPULI CENTER · SILOGNAS / SURNAS
+      </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
 # ---------------------------------------------------------------------------
@@ -104,8 +116,15 @@ with st.sidebar:
                "(sudah terisi nilai saat ini), edit angkanya, lalu unggah.")
 
 if up is None and not use_default:
-    st.info("⬅️ Unggah file MFD (.xlsx) di panel kiri untuk mulai. "
-            "Tiap sheet = satu provinsi, dengan kolom NMKAB, NMKEC, NMDESA, UR (1=Kota, 2=Desa).")
+    st.markdown("#### 👋 Selamat datang")
+    st.write("Alat ini menyusun sampel wilayah secara otomatis & proporsional dari database MFD — "
+             "semua wilayah dijamin tersampling. Mulai dengan tiga langkah:")
+    s1, s2, s3 = st.columns(3)
+    s1.info("**1. Unggah MFD**\n\nKlik *Unggah file MFD* di panel kiri. Belum punya? Unduh **Template MFD** di sana.")
+    s2.info("**2. Atur sampling**\n\nPilih preset survei, cakupan, jumlah responden & basis alokasi.")
+    s3.info("**3. Unduh hasil**\n\nDapatkan daftar titik siap lapangan + rekap format Kerangka (Excel).")
+    st.caption("Format MFD: tiap sheet = satu provinsi, dengan kolom NMKAB, NMKEC, NMDESA, "
+               "UR (1=Kota, 2=Desa). Kolom kode wilayah opsional.")
     st.stop()
 
 try:
@@ -295,8 +314,22 @@ if "res" in st.session_state:
     res: E.SamplingResult = st.session_state["res"]
     st.header("4. Hasil")
 
-    # banner cakupan
+    # kartu metrik ringkas
     cov = res.coverage
+    if cov.get("unit") == "DESA":
+        lvl_lbl = E.LEVEL_LABEL.get(cov["level"], cov["level"])
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Responden", f"{cov['responden_total']:,}")
+        m2.metric("Titik (TPD)", f"{cov['titik_terpilih']:,}")
+        m3.metric("Provinsi tercakup", f"{cov['provinsi_tercakup']}/{cov['provinsi_total']}")
+        m4.metric(f"{lvl_lbl} tercakup", f"{cov['unit_tercakup']}/{cov['unit_total']}")
+    else:
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Kab/Kota terpilih", f"{cov['total_terpilih']:,}")
+        m2.metric("Target", f"{cov['target']:,}")
+        m3.metric("Provinsi tercakup", f"{cov['provinsi_tercakup']}/{cov['provinsi_total']}")
+
+    # banner cakupan
     if cov.get("unit") == "DESA":
         ok = len(cov["unit_tidak_tercakup"]) == 0
         msg = (f"✅ Semua {cov['unit_total']} {cov['level']} tercakup."
