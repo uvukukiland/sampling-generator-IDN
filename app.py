@@ -281,19 +281,32 @@ if scope in ("PROVINSI", "KABUPATEN") and not scope_filter:
     st.warning("Pilih minimal satu wilayah pada cakupan terpilih.")
     st.stop()
 
+cfg = E.SamplingConfig(
+    scope=scope,
+    scope_filter=scope_filter,
+    unit=unit,
+    n_total=int(n_total),
+    cluster_size=int(cluster),
+    weights={"PENDUDUK": w_pop, "DPT": w_dpt, "MFD": w_mfd},
+    stratify_ur=bool(stratify) if unit == "DESA" else False,
+    min_per_unit=int(min_per),
+    pps=bool(pps) if unit == "KABUPATEN" else False,
+    seed=int(seed),
+)
+
+with st.expander("🔎 Pratinjau alokasi per wilayah (sebelum dijalankan)"):
+    st.caption("Jumlah titik yang akan dialokasikan tiap wilayah — **sama persis** dengan hasil "
+               "saat dijalankan. Cek dulu di sini untuk menghindari salah setting.")
+    try:
+        prev = E.preview_allocation(df, cfg)
+        if len(prev):
+            st.dataframe(prev.astype(str), width="stretch", hide_index=True, height=300)
+        else:
+            st.info("Tidak ada data pada cakupan terpilih.")
+    except Exception as e:
+        st.info(f"Pratinjau belum tersedia: {e}")
+
 if st.button("🚀 Lakukan Sampling", type="primary", width="stretch"):
-    cfg = E.SamplingConfig(
-        scope=scope,
-        scope_filter=scope_filter,
-        unit=unit,
-        n_total=int(n_total),
-        cluster_size=int(cluster),
-        weights={"PENDUDUK": w_pop, "DPT": w_dpt, "MFD": w_mfd},
-        stratify_ur=bool(stratify) if unit == "DESA" else False,
-        min_per_unit=int(min_per),
-        pps=bool(pps) if unit == "KABUPATEN" else False,
-        seed=int(seed),
-    )
     try:
         res = E.run_sampling(df, cfg)
     except Exception as e:
@@ -342,8 +355,19 @@ if "res" in st.session_state:
         ["📋 Ringkasan", "📍 Sampel", "📊 Alokasi", "🗂️ Kerangka", "⚠️ Catatan"])
     with tab1:
         st.dataframe(res.ringkasan, width="stretch", hide_index=True)
-        if len(res.sample) and "URLABEL" in res.sample:
-            st.bar_chart(res.sample["NMPROP"].value_counts())
+        if len(res.sample):
+            if "URLABEL" in res.sample and cov.get("unit") == "DESA":
+                lvl = cov["level"]
+                chart = res.sample.pivot_table(index=lvl, columns="URLABEL", values="ID",
+                                               aggfunc="count", fill_value=0)
+                chart = chart.reindex(
+                    columns=[c for c in ["Perkotaan", "Perdesaan"] if c in chart.columns])
+                palette = {"Perkotaan": "#2563EB", "Perdesaan": "#93C5FD"}
+                st.caption(f"Distribusi titik per {E.LEVEL_LABEL.get(lvl, lvl)} — Kota vs Desa")
+                st.bar_chart(chart, color=[palette[c] for c in chart.columns])
+            else:
+                st.caption("Jumlah kab/kota terpilih per provinsi")
+                st.bar_chart(res.sample["NMPROP"].value_counts())
     with tab2:
         show_cols = [c for c in ["ID", "NMPROP", "NMKAB", "NMKEC", "NMDESA", "URLABEL", "RESPONDEN"]
                      if c in res.sample.columns]

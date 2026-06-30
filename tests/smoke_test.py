@@ -78,6 +78,14 @@ def main() -> None:
     E.build_kerangka_recap(df, resk, cfgk)
     print("[OK] sampling KABUPATEN:", len(resk.sample), "kab terpilih")
 
+    # 5b. Pratinjau alokasi = hasil run (deterministik), kedua mode
+    prev = E.preview_allocation(df, cfg)
+    pv = prev.iloc[:-1].set_index("Provinsi")["Total_Titik"].astype(int).sort_index()
+    act = res.sample.groupby("NMPROP").size().sort_index()
+    assert (pv.values == act.values).all(), "pratinjau != hasil"
+    assert len(E.preview_allocation(df, cfgk)), "pratinjau KABUPATEN kosong"
+    print("[OK] preview_allocation cocok dgn hasil run")
+
     # 6. Template MFD bisa dimuat balik (jalur satu-sheet gabungan)
     tpl = E.build_template()
     tdf, tinfo = E.load_mfd(io.BytesIO(_excel_bytes(tpl)))

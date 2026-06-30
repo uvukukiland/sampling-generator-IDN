@@ -673,3 +673,63 @@ def build_kerangka_recap(df: pd.DataFrame, res: "SamplingResult", cfg: SamplingC
     for c in num_cols:
         total[c] = round(rec[c].sum(), 2)
     return pd.concat([rec, pd.DataFrame([total])], ignore_index=True)
+
+
+# ---------------------------------------------------------------------------
+# 7. PRATINJAU ALOKASI (tanpa seleksi acak) — untuk dilihat sebelum dijalankan
+# ---------------------------------------------------------------------------
+def preview_allocation(df: pd.DataFrame, cfg: SamplingConfig) -> pd.DataFrame:
+    """Hitung alokasi titik/unit per wilayah TANPA melakukan seleksi acak.
+
+    Alokasi bersifat deterministik (tidak bergantung seed), sehingga angka di
+    pratinjau ini PERSIS sama dengan hasil saat sampling dijalankan.
+    """
+    data = apply_scope(df, cfg)
+    if data.empty:
+        return pd.DataFrame()
+
+    # ---- unit KABUPATEN ----
+    if cfg.unit == "KABUPATEN":
+        cap = data.groupby("NMPROP")["NMKAB"].nunique().to_dict()
+        sizes = compute_sizes(data, "NMPROP", cfg.weights)
+        alloc = _cap_alloc(allocate(sizes, int(cfg.n_total), cfg.min_per_unit), cap, sizes)
+        rec = pd.DataFrame(
+            [{"Provinsi": p, "Kab_Tersedia": cap.get(p, 0), "Kab_Dialokasikan": alloc.get(p, 0)}
+             for p in sorted(data["NMPROP"].unique())])
+        total = {"Provinsi": "TOTAL", "Kab_Tersedia": rec["Kab_Tersedia"].sum(),
+                 "Kab_Dialokasikan": rec["Kab_Dialokasikan"].sum()}
+        return pd.concat([rec, pd.DataFrame([total])], ignore_index=True)
+
+    # ---- unit DESA ----
+    lvl = LEVEL_COL[cfg.scope]
+    n_clusters = int(np.ceil(cfg.n_total / max(cfg.cluster_size, 1)))
+    sizes = compute_sizes(data, lvl, cfg.weights)
+    alloc = allocate(sizes, n_clusters, cfg.min_per_unit)
+
+    rows = []
+    for u in sorted(data[lvl].dropna().unique()):
+        g = data[data[lvl] == u]
+        k = alloc.get(u, 0)
+        row = {LEVEL_LABEL[lvl]: u}
+        if lvl != "NMPROP":
+            row["Provinsi"] = g["NMPROP"].iloc[0]
+        if cfg.stratify_ur:
+            cnt = {ur: int((g["UR"] == ur).sum()) for ur in (1, 2)}
+            ur_alloc = allocate({ur: cnt[ur] for ur in (1, 2)}, k, minimum=0)
+            row["Titik_Kota"] = ur_alloc.get(1, 0)
+            row["Titik_Desa"] = ur_alloc.get(2, 0)
+        row["Total_Titik"] = k
+        row["Responden"] = k * cfg.cluster_size
+        rows.append(row)
+
+    rec = pd.DataFrame(rows)
+    rec.insert(0, "No", range(1, len(rec) + 1))
+    num_cols = [c for c in rec.columns if c not in ("No", LEVEL_LABEL[lvl], "Provinsi")]
+    total = {c: "" for c in rec.columns}
+    total[LEVEL_LABEL[lvl]] = "TOTAL"
+    for c in num_cols:
+        total[c] = int(rec[c].sum())
+    # koreksi responden total agar sama persis dgn target (titik terakhir bisa < cluster)
+    total["Responden"] = min(int(rec["Responden"].sum()), int(cfg.n_total)) \
+        if "Responden" in rec.columns else ""
+    return pd.concat([rec, pd.DataFrame([total])], ignore_index=True)
